@@ -60,15 +60,13 @@ def get_json_objetcs(file_path)
     end
 end
 
-def export_to_csv_file(file_name, objects)
+def export_to_csv_file(file_name, lines)
     CSV.open(file_name, "w") do |csv|
         begin
-            csv << get_properties(objects.first())
-            print "All objects propoerty names have been correctly exported to the CSV file\n"
-            objects.each do |object|
-                csv << get_values(object)
-                print "Information from object #{object['id']} have been correctly exported to the CSV file\n"
+            lines.each do |line|
+                csv << line
             end
+            print "All CSV lines have been successfully exported !\n"
         rescue Exception
             print "There has been an error while exporting the object information to the CSV file\n"
         end
@@ -78,7 +76,12 @@ end
 
 def convert_json_to_csv(input_file_path, export_file_path)
     imported_objects = get_json_objetcs(input_file_path)
-    export_to_csv_file(export_file_path, imported_objects)
+    csv_lines = []
+    csv_lines << get_properties(imported_objects.first())
+    imported_objects.each do |object|
+        csv_lines << get_values(object)
+    end
+    export_to_csv_file(export_file_path, csv_lines)
 end
 
 convert_json_to_csv('./users.json', './output.csv')
