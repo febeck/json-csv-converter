@@ -1,4 +1,5 @@
 require 'json'
+require 'csv'
 
 def get_users(file_path)
     begin
@@ -60,3 +61,15 @@ def get_values(user, values=[])
 end
 
 users = get_users('./users.json')
+CSV.open("output.csv", "w") do |csv|
+    begin
+        csv << get_properties(users.first())
+        print "All users propoerty names have been correctly exported to the CSV file\n"
+        users.each do |user|
+            csv << get_values(user)
+            print "Information from user #{user['id']} have been correctly exported to the CSV file\n"
+        end
+    rescue Exception
+        print "There has been an error while exporting the user information to the CSV file\n"
+    end
+end
