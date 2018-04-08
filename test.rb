@@ -7,13 +7,13 @@ class TestUsersConverter < Test::Unit::TestCase
     def test_get_users_successful
         users_file = File.read('./users.json')
         users_hash = JSON.parse(users_file)
-        assert_equal(users_hash, get_users('./users.json') )
+        assert_equal(users_hash, get_json_objetcs('./users.json') )
     end
 
-    def test_push_simple_property
+    def test_push_property
         base_array = [1]
         property = 2
-        assert_equal([1, 2], push_simple_property(base_array, property))
+        assert_equal([1, 2], push_property(base_array, property))
     end
 
     def test_push_array
