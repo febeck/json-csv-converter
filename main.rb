@@ -1,20 +1,7 @@
 require 'json'
 require 'csv'
 
-def get_users(file_path)
-    begin
-        users_file = File.read(file_path)
-        users_hash = JSON.parse(users_file)
-        print "Users imported successfully\n"
-        return users_hash
-    rescue JSON::ParserError
-        print "Error when parsing the users file\n"
-    rescue Exception
-        print "Error when reading from the file path given\n"
-    end
-end
-
-def push_simple_property(base_array, property)
+def push_property(base_array, property)
     base_array << property
 end
 
@@ -26,13 +13,13 @@ def is_object?(variable)
     variable.is_a?(Hash)
 end
 
-def get_properties(user, properties=[], base_key=nil)
-    user.keys.each do |key|
-        if is_object?(user[key])
+def get_properties(object, properties=[], base_key=nil)
+    object.keys.each do |key|
+        if is_object?(object[key])
             if base_key
-                get_properties(user[key], properties, "#{base_key}.#{key}")
+                get_properties(object[key], properties, "#{base_key}.#{key}")
             else
-                get_properties(user[key], properties, key)
+                get_properties(object[key], properties, key)
             end
         else
             if base_key
@@ -45,31 +32,53 @@ def get_properties(user, properties=[], base_key=nil)
     return properties
 end
 
-def get_values(user, values=[])
-    user.keys.each do |key|
-        if is_object?(user[key])
-            get_values(user[key], values)
+def get_values(object, values=[])
+    object.keys.each do |key|
+        if is_object?(object[key])
+            get_values(object[key], values)
         else
-            if user[key].is_a?(Array)
-                push_array(values, user[key])
+            if object[key].is_a?(Array)
+                push_array(values, object[key])
             else
-                push_simple_property(values, user[key])
+                push_property(values, object[key])
             end
         end
     end
     return values
 end
 
-users = get_users('./users.json')
-CSV.open("output.csv", "w") do |csv|
+def get_json_objetcs(file_path)
     begin
-        csv << get_properties(users.first())
-        print "All users propoerty names have been correctly exported to the CSV file\n"
-        users.each do |user|
-            csv << get_values(user)
-            print "Information from user #{user['id']} have been correctly exported to the CSV file\n"
-        end
+        json_objects_file = File.read(file_path)
+        json_objects_hash = JSON.parse(json_objects_file)
+        print "Objects imported successfully\n"
+        return json_objects_hash
+    rescue JSON::ParserError
+        print "Error when parsing the JSON objects file\n"
     rescue Exception
-        print "There has been an error while exporting the user information to the CSV file\n"
+        print "Error when reading from the file path given\n"
     end
 end
+
+def export_to_csv_file(file_name, objects)
+    CSV.open(file_name, "w") do |csv|
+        begin
+            csv << get_properties(objects.first())
+            print "All objects propoerty names have been correctly exported to the CSV file\n"
+            objects.each do |object|
+                csv << get_values(object)
+                print "Information from object #{object['id']} have been correctly exported to the CSV file\n"
+            end
+        rescue Exception
+            print "There has been an error while exporting the object information to the CSV file\n"
+        end
+    end
+end
+
+
+def convert_json_to_csv(input_file_path, export_file_path)
+    imported_objects = get_json_objetcs(input_file_path)
+    export_to_csv_file(export_file_path, imported_objects)
+end
+
+convert_json_to_csv('./users.json', './output.csv')
